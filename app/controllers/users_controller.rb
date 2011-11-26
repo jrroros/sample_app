@@ -2,7 +2,7 @@ class UsersController < ApplicationController
   before_filter :authenticate, :only => [:index, :edit, :update]
   before_filter :correct_user, :only => [:edit, :update]
   before_filter :admin_user,   :only => :destroy
-  
+
   def new
     if current_user
       redirect_to root_path
@@ -19,6 +19,7 @@ class UsersController < ApplicationController
 
   def show
     @user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(:page => params[:page])
     @title = @user.name
   end
 
@@ -39,11 +40,11 @@ class UsersController < ApplicationController
       end
     end
   end
-  
+
   def edit
     @title = "Edit user"
   end
-  
+
   def update
     if @user.update_attributes(params[:user])
       flash[:success] = "Profile updated."
@@ -53,7 +54,7 @@ class UsersController < ApplicationController
       render 'edit'
     end
   end
-  
+
   def destroy
     if params[:id].to_s == current_user.id.to_s
       flash[:error] = "You cannot destroy yourself."
@@ -63,18 +64,18 @@ class UsersController < ApplicationController
     end
     redirect_to users_path
   end
-  
+
   private
 
     def authenticate
       deny_access unless signed_in?
     end
-    
+
     def correct_user
       @user = User.find(params[:id])
       redirect_to(root_path) unless current_user?(@user)
     end
-    
+
     def admin_user
       redirect_to(root_path) unless current_user && current_user.admin?
     end

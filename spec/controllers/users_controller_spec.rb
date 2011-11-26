@@ -53,20 +53,20 @@ describe UsersController do
         response.should have_selector("a", :href => "/users?page=2",
                                            :content => "Next")
       end
-      
+
       it "should show a delete link per user if signed-in user is an admin" do
         @user.toggle!(:admin)
         get :index
         response.should have_selector("ul.users>li>a", :content => "delete")
       end
-      
+
       it "should not show a delete link per user if signed-in user is not an admin" do
         get :index
         response.should_not have_selector("ul.users>li>a", :content => "delete")
       end
     end
   end
-  
+
   describe "GET 'show'" do
     before(:each) do
       @user = Factory(:user)
@@ -95,6 +95,14 @@ describe UsersController do
     it "should have a profile image" do
       get :show, :id => @user
       response.should have_selector("h1>img", :class => "gravatar")
+    end
+    
+    it "should show the user's microposts" do
+      mp1 = Factory(:micropost, :user => @user, :content => "Foo bar")
+      mp2 = Factory(:micropost, :user => @user, :content => "Baz quux")
+      get :show, :id => @user
+      response.should have_selector("span.content", :content => mp1.content)
+      response.should have_selector("span.content", :content => mp2.content)
     end
   end
 
@@ -171,7 +179,7 @@ describe UsersController do
         post :create, :user => @attr
         controller.should be_signed_in
       end
-      
+
       it "should redirect to the user show page" do
         post :create, :user => @attr
         response.should redirect_to(user_path(assigns(:user)))
@@ -183,7 +191,7 @@ describe UsersController do
       end
     end
   end
-  
+
   describe "GET 'edit'" do
 
     before(:each) do
@@ -208,7 +216,7 @@ describe UsersController do
                                          :content => "change")
     end
   end
-  
+
   describe "PUT 'update'" do
 
     before(:each) do
@@ -259,7 +267,7 @@ describe UsersController do
       end
     end
   end
-  
+
   describe "authentication of edit/update pages" do
 
     before(:each) do
@@ -278,7 +286,7 @@ describe UsersController do
         response.should redirect_to(signin_path)
       end
     end
-    
+
     describe "for signed-in users" do
 
       before(:each) do
@@ -297,7 +305,7 @@ describe UsersController do
       end
     end
   end
-  
+
   describe "DELETE 'destroy'" do
 
     before(:each) do
@@ -337,7 +345,7 @@ describe UsersController do
         response.should redirect_to(users_path)
       end
 
-      describe "that tries to destroy himself" do   
+      describe "that tries to destroy himself" do
         it "should not destroy the admin himself" do
           lambda do
             delete :destroy, :id => @admin.id
